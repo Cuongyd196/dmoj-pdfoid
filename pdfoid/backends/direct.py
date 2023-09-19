@@ -14,8 +14,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
-
+from selenium.webdriver.chrome.service import Service
 class DirectSeleniumBackend(object):
     def __init__(self):
         self.chromedriver_path = os.environ.get('CHROMEDRIVER_PATH', 'chromedriver')
@@ -77,11 +76,13 @@ class DirectSeleniumWorker(object):
 
     @gen.coroutine
     def html_to_pdf(self, *, header_template, footer_template, wait_for):
+        service = Service(executable_path=self.backend.chromedriver_path)
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
         options.binary_location = self.backend.chrome_path
-
-        browser = webdriver.Chrome(self.backend.chromedriver_path, options=options)
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        browser = webdriver.Chrome(service=service, options=options)
         browser.get('file://%s' % self.input_html_file)
 
         if wait_for is not None:
